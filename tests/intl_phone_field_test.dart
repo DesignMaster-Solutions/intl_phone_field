@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl_phone_field/countries.dart';
+import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 class TestWidget extends StatelessWidget {
@@ -23,6 +25,33 @@ class TestWidget extends StatelessWidget {
 }
 
 void main() {
+  testWidgets(
+      'country picker keeps a tapped row valid while a search rebuild is pending',
+      (tester) async {
+    final pickerCountries = countries.take(2).toList();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CountryPickerDialog(
+          searchText: 'Search country',
+          languageCode: 'en',
+          countryList: pickerCountries,
+          filteredCountries: pickerCountries,
+          selectedCountry: pickerCountries.first,
+          onCountryChanged: (_) {},
+        ),
+      ),
+    );
+
+    final searchField = tester.widget<TextField>(find.byType(TextField));
+    final firstVisibleCountry =
+        tester.widget<ListTile>(find.byType(ListTile).first);
+
+    searchField.onChanged!('no-country-has-this-name');
+
+    expect(firstVisibleCountry.onTap, returnsNormally);
+  });
+
   testWidgets('Test intl_phone_field setup with completeNumber', (WidgetTester tester) async {
     await tester.pumpWidget(const TestWidget(
       phoneNumber: '+447891234467',
